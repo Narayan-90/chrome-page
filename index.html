@@ -3,72 +3,109 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>New Tab</title>
+  <title>Glass New Tab</title>
+
   <style>
     :root{
-      --glass-bg: rgba(255,255,255,.10);
-      --glass-brd: rgba(255,255,255,.22);
-      --glass-shadow: 0 18px 60px rgba(0,0,0,.35);
+      --glass-bg: rgba(255,255,255,.08);
+      --glass-brd: rgba(255,255,255,.20);
+      --shadow: 0 10px 38px rgba(0,0,0,.28);
       --text: rgba(255,255,255,.92);
-      --muted: rgba(255,255,255,.70);
-      --radius: 22px;
+      --muted: rgba(255,255,255,.65);
     }
+
     *{ box-sizing:border-box; }
     html,body{ height:100%; margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; }
     body{ background:#0b1020; overflow:hidden; }
 
+    /* Fullscreen video */
     #bgVideo{
-      position:fixed; inset:0; width:100%; height:100%;
-      object-fit:cover; z-index:-3;
+      position:fixed;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      z-index:-3;
       transform: scale(1.02);
-      filter: saturate(1.06) contrast(1.02);
+      filter: saturate(1.06) contrast(1.03);
     }
+
+    /* Vignette overlay */
     .vignette{
-      position:fixed; inset:0; z-index:-2; pointer-events:none;
+      position:fixed;
+      inset:0;
+      z-index:-2;
+      pointer-events:none;
       background:
-        radial-gradient(1200px 700px at 50% 45%, rgba(0,0,0,.10), rgba(0,0,0,.55)),
-        linear-gradient(to bottom, rgba(0,0,0,.15), rgba(0,0,0,.35));
+        radial-gradient(1200px 700px at 50% 45%, rgba(0,0,0,.08), rgba(0,0,0,.58)),
+        linear-gradient(to bottom, rgba(0,0,0,.10), rgba(0,0,0,.34));
     }
 
+    /* Only element: search bar near bottom */
     .wrap{
-  height:100%;
-  display:flex;
-  align-items:flex-end;   /* push to bottom */
-  justify-content:center;
-  padding-bottom:80px;    /* adjust height from bottom */
+      height:100%;
+      display:flex;
+      justify-content:center;
+      align-items:flex-end;
+      padding: 0 20px 80px; /* move up/down: change 80px */
     }
 
+    /* Chrome-like glass pill */
     .glass{
-  width:min(600px, calc(100vw - 40px)); /* slightly smaller */
-  border-radius: 999px; /* FULL pill shape */
-  background: rgba(255,255,255,.08);
-  border:1px solid rgba(255,255,255,.18);
-  box-shadow: 0 10px 40px rgba(0,0,0,.25);
-  backdrop-filter: blur(20px) saturate(1.2);
-  -webkit-backdrop-filter: blur(20px) saturate(1.2);
-   }
-    .row{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:10px 14px; /* thinner */
- }
-    input{
-  width:100%;
-  font-size:16px; /* slightly smaller */
-  line-height:20px;
-  color: rgba(255,255,255,.9);
-  background: transparent;
-  border:0;
-  outline:none;
-  }
+      width: 560px;
+      max-width: calc(100vw - 40px);
+      border-radius: 9999px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-brd);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(20px) saturate(1.25);
+      -webkit-backdrop-filter: blur(20px) saturate(1.25);
+      overflow:hidden;
+      transition: background .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
 
-    /* URL panel (Ctrl/⌘ + ,) */
+    .glass:focus-within{
+      background: rgba(255,255,255,.10);
+      border-color: rgba(255,255,255,.28);
+      box-shadow: 0 14px 45px rgba(0,0,0,.34);
+    }
+
+    .row{
+      height: 44px;          /* thinner bar */
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding: 0 16px;
+    }
+
+    .icon{
+      width:18px;
+      height:18px;
+      opacity:.92;
+      flex:0 0 18px;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,.22));
+    }
+
+    input{
+      width:100%;
+      font-size:15px;
+      line-height:20px;
+      color: var(--text);
+      background: transparent;
+      border:0;
+      outline:none;
+      padding: 0;
+    }
+    input::placeholder{ color: var(--muted); }
+
+    /* Hidden URL panel (Ctrl/⌘ + ,) */
     #panel{
-      position:fixed; left:16px; bottom:16px;
+      position:fixed;
+      left:16px;
+      bottom:16px;
       width:min(520px, calc(100vw - 32px));
       border-radius:18px;
-      background: rgba(20,24,38,.35);
+      background: rgba(20,24,38,.38);
       border: 1px solid rgba(255,255,255,.18);
       box-shadow: 0 18px 60px rgba(0,0,0,.45);
       backdrop-filter: blur(16px) saturate(1.2);
@@ -77,10 +114,18 @@
       display:none;
     }
     #panel .title{
-      font-size:13px; color: var(--text); opacity:.9;
-      margin:0 0 10px; letter-spacing:.2px;
+      font-size:13px;
+      color: var(--text);
+      opacity:.9;
+      margin:0 0 10px;
+      letter-spacing:.2px;
     }
-    .controls{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .controls{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
     .btn, .field{
       border-radius:14px;
       border:1px solid rgba(255,255,255,.20);
@@ -90,16 +135,21 @@
       font-size:13px;
       outline:none;
     }
-    .btn{ cursor:pointer; user-select:none; }
+    .btn{
+      cursor:pointer;
+      user-select:none;
+    }
     .btn:hover{ background: rgba(255,255,255,.12); }
     .field{ flex:1; min-width:260px; }
     .hint{
       margin-top:10px;
-      font-size:12px; color: var(--muted);
+      font-size:12px;
+      color: var(--muted);
       line-height:1.35;
     }
   </style>
 </head>
+
 <body>
   <video id="bgVideo" autoplay muted loop playsinline></video>
   <div class="vignette"></div>
@@ -108,14 +158,15 @@
     <form class="glass" id="searchForm" autocomplete="off">
       <div class="row">
         <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M10.5 18.5a8 8 0 1 1 0-16 8 8 0 0 1 0 16Z" stroke="rgba(255,255,255,.9)" stroke-width="1.6"/>
-          <path d="M16.8 16.8 21 21" stroke="rgba(255,255,255,.9)" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M10.5 18.5a8 8 0 1 1 0-16 8 8 0 0 1 0 16Z" stroke="rgba(255,255,255,.92)" stroke-width="1.8"/>
+          <path d="M16.8 16.8 21 21" stroke="rgba(255,255,255,.92)" stroke-width="1.8" stroke-linecap="round"/>
         </svg>
         <input id="q" placeholder="Search…" autofocus />
       </div>
     </form>
   </div>
 
+  <!-- URL-only background settings -->
   <div id="panel" role="dialog" aria-label="Background Settings">
     <p class="title">Set background video URL</p>
     <div class="controls">
@@ -125,10 +176,82 @@
     </div>
     <div class="hint">
       Toggle: <b>Ctrl/⌘ + ,</b> • Close: <b>Esc</b><br/>
-      Tip: use a <b>direct</b> video file link ending in <b>.mp4</b> or <b>.webm</b> (not a YouTube page link).
+      Use a <b>direct</b> video file link ending in <b>.mp4</b> or <b>.webm</b> (not YouTube page links).
     </div>
   </div>
 
-  <script src="newtab.js"></script>
+  <script>
+    (() => {
+      const STORAGE_KEY = "glassNewTabVideoUrl";
+
+      const video = document.getElementById("bgVideo");
+      const form = document.getElementById("searchForm");
+      const input = document.getElementById("q");
+
+      const panel = document.getElementById("panel");
+      const urlField = document.getElementById("urlField");
+      const setUrlBtn = document.getElementById("setUrlBtn");
+      const clearBtn = document.getElementById("clearBtn");
+
+      function setVideo(src, persist) {
+        if (!src) return;
+        video.src = src;
+        video.play().catch(() => {});
+        if (persist) localStorage.setItem(STORAGE_KEY, src);
+      }
+
+      // Load saved background (URL-only)
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) setVideo(saved, false);
+
+      // Search (Google)
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const q = input.value.trim();
+        if (!q) return;
+        window.location.assign("https://www.google.com/search?q=" + encodeURIComponent(q));
+      });
+
+      // Shortcuts
+      document.addEventListener("keydown", (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === ",") {
+          e.preventDefault();
+          const show = panel.style.display !== "block";
+          panel.style.display = show ? "block" : "none";
+          if (show) {
+            urlField.value = localStorage.getItem(STORAGE_KEY) || "";
+            urlField.focus();
+          }
+        }
+        if (e.key === "Escape") panel.style.display = "none";
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "l") {
+          e.preventDefault();
+          input.focus();
+          input.select();
+        }
+      });
+
+      // Save URL
+      setUrlBtn.addEventListener("click", () => {
+        const u = urlField.value.trim();
+        if (!u) return;
+        setVideo(u, true);
+        panel.style.display = "none";
+      });
+
+      // Clear
+      clearBtn.addEventListener("click", () => {
+        localStorage.removeItem(STORAGE_KEY);
+        video.removeAttribute("src");
+        video.load();
+        panel.style.display = "none";
+      });
+
+      // Autoplay nudge
+      window.addEventListener("pointerdown", () => {
+        if (video.paused) video.play().catch(() => {});
+      }, { once: true });
+    })();
+  </script>
 </body>
 </html>
