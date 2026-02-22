@@ -1,6 +1,5 @@
-<script>
 (() => {
-  const STORAGE_KEY = "glassNewTabVideoData";
+  const STORAGE_KEY = "glassNewTabVideoUrl";
 
   const video = document.getElementById("bgVideo");
   const form = document.getElementById("searchForm");
@@ -11,24 +10,18 @@
   const setUrlBtn = document.getElementById("setUrlBtn");
   const clearBtn = document.getElementById("clearBtn");
 
-  // 🔥 create file input dynamically
-  const fileInput = document.createElement("input");
-  fileInput.type = "file";
-  fileInput.accept = "video/*";
-  fileInput.style.display = "none";
-  document.body.appendChild(fileInput);
-
-  function setVideo(src) {
+  function setVideo(src, persist) {
     if (!src) return;
     video.src = src;
     video.play().catch(() => {});
+    if (persist) localStorage.setItem(STORAGE_KEY, src);
   }
 
-  // Load saved video (base64)
+  // Load saved background
   const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) setVideo(saved);
+  if (saved) setVideo(saved, false);
 
-  // Search
+  // Search (uses Google)
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const q = input.value.trim();
@@ -40,34 +33,27 @@
   document.addEventListener("keydown", (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === ",") {
       e.preventDefault();
-      panel.style.display = (panel.style.display === "block") ? "none" : "block";
+      const show = panel.style.display !== "block";
+      panel.style.display = show ? "block" : "none";
+      if (show) {
+        urlField.value = localStorage.getItem(STORAGE_KEY) || "";
+        urlField.focus();
+      }
     }
     if (e.key === "Escape") panel.style.display = "none";
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "l") {
+      e.preventDefault();
+      input.focus();
+      input.select();
+    }
   });
 
-  // 🔥 Upload video button
-  const uploadBtn = document.createElement("button");
-  uploadBtn.textContent = "Upload Video";
-  uploadBtn.className = "btn";
-  uploadBtn.type = "button";
-  panel.querySelector(".controls").prepend(uploadBtn);
-
-  uploadBtn.addEventListener("click", () => {
-    fileInput.click();
-  });
-
-  fileInput.addEventListener("change", () => {
-    const file = fileInput.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const base64 = e.target.result;
-      localStorage.setItem(STORAGE_KEY, base64);
-      setVideo(base64);
-      panel.style.display = "none";
-    };
-    reader.readAsDataURL(file);
+  // Save URL
+  setUrlBtn.addEventListener("click", () => {
+    const u = urlField.value.trim();
+    if (!u) return;
+    setVideo(u, true);
+    panel.style.display = "none";
   });
 
   // Clear
@@ -78,5 +64,8 @@
     panel.style.display = "none";
   });
 
+  // Autoplay nudge
+  window.addEventListener("pointerdown", () => {
+    if (video.paused) video.play().catch(() => {});
+  }, { once: true });
 })();
-</script>
