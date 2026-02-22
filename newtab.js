@@ -1,5 +1,6 @@
+<script>
 (() => {
-  const STORAGE_KEY = "glassNewTabVideoUrl";
+  const STORAGE_KEY = "glassNewTabVideoData";
 
   const video = document.getElementById("bgVideo");
   const form = document.getElementById("searchForm");
@@ -10,18 +11,24 @@
   const setUrlBtn = document.getElementById("setUrlBtn");
   const clearBtn = document.getElementById("clearBtn");
 
-  function setVideo(src, persist) {
+  // 🔥 create file input dynamically
+  const fileInput = document.createElement("input");
+  fileInput.type = "file";
+  fileInput.accept = "video/*";
+  fileInput.style.display = "none";
+  document.body.appendChild(fileInput);
+
+  function setVideo(src) {
     if (!src) return;
     video.src = src;
     video.play().catch(() => {});
-    if (persist) localStorage.setItem(STORAGE_KEY, src);
   }
 
-  // Load saved background
+  // Load saved video (base64)
   const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) setVideo(saved, false);
+  if (saved) setVideo(saved);
 
-  // Search (uses Google)
+  // Search
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const q = input.value.trim();
@@ -33,27 +40,34 @@
   document.addEventListener("keydown", (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === ",") {
       e.preventDefault();
-      const show = panel.style.display !== "block";
-      panel.style.display = show ? "block" : "none";
-      if (show) {
-        urlField.value = localStorage.getItem(STORAGE_KEY) || "";
-        urlField.focus();
-      }
+      panel.style.display = (panel.style.display === "block") ? "none" : "block";
     }
     if (e.key === "Escape") panel.style.display = "none";
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "l") {
-      e.preventDefault();
-      input.focus();
-      input.select();
-    }
   });
 
-  // Save URL
-  setUrlBtn.addEventListener("click", () => {
-    const u = urlField.value.trim();
-    if (!u) return;
-    setVideo(u, true);
-    panel.style.display = "none";
+  // 🔥 Upload video button
+  const uploadBtn = document.createElement("button");
+  uploadBtn.textContent = "Upload Video";
+  uploadBtn.className = "btn";
+  uploadBtn.type = "button";
+  panel.querySelector(".controls").prepend(uploadBtn);
+
+  uploadBtn.addEventListener("click", () => {
+    fileInput.click();
+  });
+
+  fileInput.addEventListener("change", () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const base64 = e.target.result;
+      localStorage.setItem(STORAGE_KEY, base64);
+      setVideo(base64);
+      panel.style.display = "none";
+    };
+    reader.readAsDataURL(file);
   });
 
   // Clear
@@ -64,8 +78,5 @@
     panel.style.display = "none";
   });
 
-  // Autoplay nudge
-  window.addEventListener("pointerdown", () => {
-    if (video.paused) video.play().catch(() => {});
-  }, { once: true });
 })();
+</script>
