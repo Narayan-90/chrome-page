@@ -3,6 +3,18 @@
   "name": "Glass New Tab (URL Video)",
   "version": "1.0.0",
   "description": "Minimal glass new tab with URL video wallpaper + search.",
+  "icons": {
+    "16": "icons/icon.png",
+    "48": "icons/icon.png",
+    "128": "icons/icon.png"
+  },
+  "permissions": [
+    "tabs",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
   "chrome_url_overrides": {
     "newtab": "newtab.html"
   }
